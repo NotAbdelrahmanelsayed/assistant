@@ -1,9 +1,0 @@
-openai-whisper
-numpy
-SpeechRecognition
-pyttsx3
-pyaudio  # May require special steps to install
-pywin32
-pyautogui
-selenium
-soundfile
