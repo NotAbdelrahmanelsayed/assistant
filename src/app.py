@@ -1,7 +1,11 @@
-# from actions import open_chrome
+import os
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'F:\resume\assistant\bedo-elsayed-9228df9baa68.json'
+from matcher import main_matcher, triggers, executables
+
+from AppOpener import open as _open # type: ignore
 import speech_recognition as sr
-import pyttsx3
-import pyautogui
+import pyttsx3 # type: ignore
+import pyautogui # type: ignore
 
 def listen():
     recognizer = sr.Recognizer()
@@ -10,9 +14,11 @@ def listen():
             print("Listening...")
             audio = recognizer.listen(source)
         try:
-            command = recognizer.recognize_whisper(model="base.en", audio_data=audio)
+            # command = recognizer.recognize_whisper(model="base.en", audio_data=audio)
+            # command = recognizer.recognize_google(audio_data=audio)
+            command = recognizer.recognize_google_cloud(audio_data=audio)
             print(f"You said: {command}")
-            return command.lower()
+            return command.lower() if command else False
         except sr.UnknownValueError:
             print("Sorry, I did not understand.")
             return ""
@@ -35,7 +41,13 @@ def add_to_todo_list(item):
 def main():
     while True:
         command = listen()
-        # if 'open chrome' in command:
+        if command:
+            speak(f"you said: {command}")
+            main_matcher(command)
+        else:
+            print(f"Ignore this command {command}")
+        # if 'open' in command:
+        #     _open("")
         #     open_chrome()
         # elif 'add to to-do list' in command:
         #     item = command.replace('add to to-do list', '').strip()
