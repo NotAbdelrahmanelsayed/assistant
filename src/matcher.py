@@ -1,47 +1,52 @@
 import rapidfuzz
-from AppOpener import give_appnames, open as _open, close as _close
+from AppOpener import give_appnames, open as _open, close as _close, update_list
+from abc import ABC, abstractmethod
 
-triggers = ["open", "launch", "start", "run", "execute"]
-executables = give_appnames(upper=False)
-command = "oben gogle chrom"
-
-def is_open(command, triggers):
-    """
-    function to check if the query contains open 
-    """
-    key, score, index = rapidfuzz.process.extractOne(command, triggers, scorer=rapidfuzz.fuzz.partial_ratio)
-    if score > 70:
-        return True
-    return False
+_open("update", output=False) # Update Executables list.
 
 
-def get_executable(command, executables):
-    """
-    function to cheeck if the query have an executable
-    """
-    key, score, index = rapidfuzz.process.extractOne(command, executables, scorer=rapidfuzz.fuzz.partial_ratio)
-    if score > 70:
-        return key
-    print(f"just found key: {key} with score {score}")
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
+
+class OpenCommand(Command):
+    def __init__(self, app_name):
+        self.app_name = app_name
+
+    def execute(self):
+        _open(self.app_name, match_closest=True, output=False)
 
 
-def open_executable(command):
-    """
-    function to open the executable.
-    """
-    _open(command, match_closest=True, output=False)
+class CloseCommand(Command):
+    def __init__(self, app_name):
+        self.app_name = app_name
 
-def close_executable(command):
-    _close(command, match_closest=True, output=False)
+    def execute(self):
+        _close(self.app_name, match_closest=True, output=False)
 
+class OpenApps:
+    def __init__(self, command):
+        self.command = command
+        self.executables = give_appnames(upper=False)
+        self.command_instance = None
 
-def main_matcher(command, triggers=triggers, executables=executables):
-    # check command opens
-    if is_open(command, triggers):
-        key = get_executable(command, executables)
-        _open(key)
+    def get_executable(self):
+        key, score, _ = rapidfuzz.process.extractOne(
+            self.command, self.executables, scorer=rapidfuzz.fuzz.partial_ratio
+        )
+        return key, score
 
+    def set_command(self, action):
+        executable = self.get_executable()[0]
+        if action == "open" and executable:
+            self.command_instance = OpenCommand(executable)
+        elif action == "close" and executable:
+            self.command_instance = CloseCommand(executable)
 
-def close_recent(command):
-    
-    pass
+    def execute_command(self):
+        key, score = self.get_executable()
+        if score > 70:
+            self.command_instance.execute()
+            return f"opened {key}"
+        return f"Just found key:{key} with score:{score}"
