@@ -1,5 +1,5 @@
 import rapidfuzz
-from AppOpener import give_appnames, open as _open, close as _close, update_list
+from AppOpener import give_appnames, open as _open, close as _close
 from abc import ABC, abstractmethod
 
 _open("update", output=False) # Update Executables list.
