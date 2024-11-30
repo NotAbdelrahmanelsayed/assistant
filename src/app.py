@@ -17,9 +17,9 @@ class VoiceAssistant:
             print("Listening...")
             audio = self.recognizer.listen(source)
         try:
-            # command = recognizer.recognize_whisper(model="base.en", audio_data=audio)
-            # command = recognizer.recognize_google(audio_data=audio)
-            command = self.recognizer.recognize_google_cloud(audio_data=audio)
+            # command = self.recognizer.recognize_whisper(model="base.en", audio_data=audio)
+            # command = self.recognizer.recognize_google(audio_data=audio)
+            command = self.recognizer.recognize_google_cloud(audio_data=audio)#, credentials_json="../bedo-*")
             print(f"You said: {command}")
             return command.lower() if command else False
         
@@ -59,8 +59,8 @@ def main():
     assistant = VoiceAssistant()
     
     while True:
-        # command = assistant.listen()
-        command = "close whatsapp"
+        command = assistant.listen()
+        # command = "close whatsapp"
         if "open" in command:
             print(assistant.open_app(command))
         

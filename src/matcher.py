@@ -1,9 +1,9 @@
 import rapidfuzz
-from AppOpener import give_appnames, open as _open, close as _close
+from AppOpener import give_appnames, open as open_app, close as close_app
 from abc import ABC, abstractmethod
 
-_open("update", output=False) # Update Executables list.
-
+open_app("update", output=False) # Update Executables list.
+THRESHOLD_SCORE = 70 
 
 class Command(ABC):
     @abstractmethod
@@ -15,7 +15,7 @@ class OpenCommand(Command):
         self.app_name = app_name
 
     def execute(self):
-        _open(self.app_name, match_closest=True, output=False)
+        open_app(self.app_name, match_closest=True, output=False)
 
 
 class CloseCommand(Command):
@@ -23,30 +23,46 @@ class CloseCommand(Command):
         self.app_name = app_name
 
     def execute(self):
-        _close(self.app_name, match_closest=True, output=False)
+        close_app(self.app_name, match_closest=True, output=False)
 
 class OpenApps:
     def __init__(self, command):
         self.command = command
-        self.executables = give_appnames(upper=False)
+        try:
+            self.executables = give_appnames(upper=False)
+        except Exception as e:
+            raise RuntimeError(f"failed to retrieve app names: {e}")
         self.command_instance = None
 
-    def get_executable(self):
-        key, score, _ = rapidfuzz.process.extractOne(
+    def match_executable(self):
+        """
+        Match the command against available executables using fuzzy matching.
+        Returns (key, score).
+        """
+        return rapidfuzz.process.extractOne(
             self.command, self.executables, scorer=rapidfuzz.fuzz.partial_ratio
         )
-        return key, score
+    
 
     def set_command(self, action):
-        executable = self.get_executable()[0]
-        if action == "open" and executable:
+        """
+        Set the command to open or close an application based on the action.
+        """
+        executable, _ = self.match_executable() or (None, 0)
+        if not executable:
+            return
+        
+        if action == "open":
             self.command_instance = OpenCommand(executable)
-        elif action == "close" and executable:
+        elif action == "close":
             self.command_instance = CloseCommand(executable)
 
     def execute_command(self):
-        key, score = self.get_executable()
-        if score > 70:
+        """
+        Execute the previously set command if confidence is above the threshold.
+        """
+        executable, score = self.match_executable()
+        if score >= THRESHOLD_SCORE and self.command_instance:
             self.command_instance.execute()
-            return f"opened {key}"
-        return f"Just found key:{key} with score:{score}"
+            return f"Executed action on {executable}."
+        return f"Could not confidently match command. Found: {executable} (score: {score})."
