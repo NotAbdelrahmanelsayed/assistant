@@ -1,11 +1,14 @@
 import os
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'F:\resume\assistant\bedo-elsayed-9228df9baa68.json'
+import logging
 from matcher import OpenApps
-
-from AppOpener import open as _open # type: ignore
 import speech_recognition as sr
-import pyttsx3 # type: ignore
-import pyautogui # type: ignore
+import pyttsx3
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')#, filename="logger.txt")
+
+# Environment Configuration
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'F:\resume\assistant\bedo-elsayed-9228df9baa68.json'
 
 class VoiceAssistant:
     def __init__(self):
@@ -13,19 +16,25 @@ class VoiceAssistant:
         self.engine = pyttsx3.init()
     
     def listen(self):
+        """
+        Listen for a voice command and return the text.
+        """
         with sr.Microphone() as source:
-            print("Listening...")
+            logging.info("Listening for commands...")
             audio = self.recognizer.listen(source)
         try:
-            # command = self.recognizer.recognize_whisper(model="base.en", audio_data=audio)
-            # command = self.recognizer.recognize_google(audio_data=audio)
             command = self.recognizer.recognize_google_cloud(audio_data=audio)#, credentials_json="../bedo-*")
-            print(f"You said: {command}")
-            return command.lower() if command else False
+            logging.info(f"Command recognized: {command}")
+            return command.lower()
         
         except sr.UnknownValueError:
-            print("Sorry, I did not understand.")
+            logging.info("Could not understand the audio input.")
             return ""
+
+        except Exception as e:
+            logging.error(f"Error in recognizing speech: {e}")
+            return ""
+
 
     def speak(self, text):
         """
@@ -34,48 +43,35 @@ class VoiceAssistant:
         self.engine.say(text)
         self.engine.runAndWait()
     
-    def open_app(self, command):
+    def handle_app_action(self, command, action):
         """
         Handle app openning commands
         """
-        apps = OpenApps(command)
-        apps.set_command("open")
-        output = apps.execute_command()
-        self.speak(output)
-        return output
-
-    def close_app(self, command):
-        """
-        Handle app closing commands
-        """
-        apps = OpenApps(command)
-        apps.set_command("close")
-        output = apps.execute_command()
-        self.speak(output)
-        return output
+        try:
+            apps = OpenApps(command)
+            apps.set_command(action)
+            output = apps.execute_command()
+            self.speak(output)
+            return output
+        except Exception as e:
+            error_message = f"Failed to {action} app: {e}"
+            logging.error(error_message)
+            self.speak(error_message)
+            return error_message
 
 
 def main():
     assistant = VoiceAssistant()
-    
+
     while True:
         command = assistant.listen()
-        # command = "close whatsapp"
         if "open" in command:
-            print(assistant.open_app(command))
-        
+            logging.info(assistant.handle_app_action(command, "open"))
         elif "close" in command:
-            print(assistant.close_app(command))
-
-        
-        elif 'add to to-do list' in command:
-            item = command.replace('add to to-do list', '').strip()
-            assistant.add_to_todo_list(item)
-        
-        elif 'exit' in command or 'quit' in command:
+            logging.info(assistant.handle_app_action(command, "close"))
+        elif "exit" in command or "quit" in command:
             assistant.speak("Goodbye!")
             break
-        
         else:
             assistant.speak("Sorry, I didn't catch that.")
 

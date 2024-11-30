@@ -48,10 +48,9 @@ class OpenApps:
         """
         Set the command to open or close an application based on the action.
         """
-        executable, _ = self.match_executable() or (None, 0)
+        executable, _, _ = self.match_executable() or (None, 0)
         if not executable:
             return
-        
         if action == "open":
             self.command_instance = OpenCommand(executable)
         elif action == "close":
@@ -61,7 +60,7 @@ class OpenApps:
         """
         Execute the previously set command if confidence is above the threshold.
         """
-        executable, score = self.match_executable()
+        executable, score, _ = self.match_executable()
         if score >= THRESHOLD_SCORE and self.command_instance:
             self.command_instance.execute()
             return f"Executed action on {executable}."
