@@ -51,7 +51,7 @@ class VoiceAssistant:
             apps = OpenApps(command)
             apps.set_command(action)
             output = apps.execute_command()
-            self.speak(output)
+            # self.speak(output)
             return output
         except Exception as e:
             error_message = f"Failed to {action} app: {e}"
@@ -64,7 +64,8 @@ def main():
     assistant = VoiceAssistant()
 
     while True:
-        command = assistant.listen()
+        # command = assistant.listen()
+        command = str(input("command: ")).lower()
         if "open" in command:
             logging.info(assistant.handle_app_action(command, "open"))
         elif "close" in command:
