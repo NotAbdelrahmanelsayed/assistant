@@ -17,56 +17,6 @@ def register_command(trigger, handler):
     """
     COMMANDS[trigger] = handler
 
-
-def execute_intent(assistant, intent, command):
-    try:
-        entity = extract_entity(command, intent)
-        action = INTENTS[intent]["action"]
-        logging.info(f"Executing intent '{intent}' with entity '{entity}'.")
-        
-        if action == "handle_open_workspace":
-            return handle_open_workspace(assistant, entity)
-        elif action == "handle_open_app":
-            return handle_open_app(assistant, entity)
-        elif action == "handle_close_app":
-            return handle_close_app(assistant, entity)
-        elif action == "handle_exit":
-            return handle_exit(assistant, None)
-    except Exception as e:
-        logging.error(f"Failed to execute intent '{intent}': {e}")
-        assistant.speak(f"Sorry, there was an error handling your request.")
-        return None
-
-
-
-def identify_intent(command):
-    best_match = None
-    best_score = 0
-
-    for intent, data in INTENTS.items():
-        for pattern in data["patterns"]:
-            score = rapidfuzz.fuzz.ratio(command.lower(), pattern.lower())  # Use exact ratio for accuracy
-            if score > best_score:  # Track the best match
-                best_match = intent
-                best_score = score
-
-    # Only consider it a valid intent if it exceeds a high threshold
-    if best_score > 90:  
-        return best_match
-    else:
-        logging.info(f"Low confidence score ({best_score}). Command '{command}' did not match any intent.")
-        return None
-
-
-def extract_entity(command, intent):
-    if intent == "open_workspace":
-        return command.replace("open workspace", "").strip()
-    elif intent == "open_app":
-        return command.replace("open", "").strip()
-    elif intent == "close_app":
-        return command.replace("close", "").strip()
-    return None
-
 def handle_open_workspace(assistant, command):
     workspace_name = command.replace("open workspace", "").strip()
     
@@ -105,25 +55,6 @@ def handle_list_workspaces(assistant, _):
     response = f"Available workspaces are: {workspace_names}" if workspace_names else "No workspaces found."
     assistant.speak(response)
     return response
-
-INTENTS = {
-    "open_workspace": {
-        "patterns": ["open workspace", "launch workspace"],
-        "action": "handle_open_workspace"
-    },
-    "open_app": {
-        "patterns": ["open", "start"],
-        "action": "handle_open_app"
-    },
-    "close_app": {
-        "patterns": ["close", "shut down"],
-        "action": "handle_close_app"
-    },
-    "exit": {
-        "patterns": ["exit", "quit", "stop"],
-        "action": "handle_exit"
-    }
-}
 
 COMMANDS = {
     "open_workspace": {

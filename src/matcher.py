@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 open_app("update", output=False) # Update Executables list.
-THRESHOLD_SCORE = 70 
+THRESHOLD_SCORE = 90
 
 class Command(ABC):
     @abstractmethod

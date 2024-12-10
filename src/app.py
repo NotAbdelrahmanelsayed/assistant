@@ -40,8 +40,8 @@ class VoiceAssistant:
         """
         Convert text to speech.
         """
-        self.engine.say(text)
-        self.engine.runAndWait()
+        # self.engine.say(text)
+        # self.engine.runAndWait()
     
     def handle_app_action(self, command, action):
         """
@@ -51,12 +51,10 @@ class VoiceAssistant:
             apps = OpenApps(command)
             apps.set_command(action)
             output = apps.execute_command()
-            # self.speak(output)
             return output
         except Exception as e:
             error_message = f"Failed to {action} app: {e}"
             logging.error(error_message)
-            self.speak(error_message)
             return error_message
 
 
